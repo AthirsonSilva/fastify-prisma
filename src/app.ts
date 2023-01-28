@@ -1,8 +1,45 @@
-import Fastify from 'fastify'
+import jwt, { JWT } from '@fastify/jwt'
+import Fastify, { FastifyReply, FastifyRequest } from 'fastify'
 import userRoutes from './modules/users/user.routes'
 import { userSchemas } from './modules/users/user.schema'
 
+declare module 'fastify' {
+	interface FastifyRequest {
+		jwt: JWT
+	}
+	export interface FastifyInstance {
+		authenticate: any
+	}
+}
+
+declare module '@fastify/jwt' {
+	interface FastifyJWT {
+		user: {
+			id: number
+			email: string
+			name: string
+		}
+	}
+}
+
 const server = Fastify()
+
+server.register(jwt, {
+	secret: 'supersecret'
+})
+
+server.decorate(
+	'authenticate',
+	async (request: FastifyRequest, reply: FastifyReply) => {
+		try {
+			await request.jwtVerify()
+		} catch (error) {
+			return reply.send({
+				message: 'Authentication failed: ' + error.message
+			})
+		}
+	}
+)
 
 server.get('/health', async (request, reply) => {
 	return {
