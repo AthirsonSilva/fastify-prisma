@@ -17,3 +17,7 @@ export async function createUser(input: CreateUserInput) {
 		throw new Error(error.message)
 	}
 }
+
+export async function findUserByEmail(email: string) {
+	return prisma.user.findUnique({ where: { email } })
+}

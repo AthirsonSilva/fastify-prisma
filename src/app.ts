@@ -22,7 +22,7 @@ declare module '@fastify/jwt' {
 	}
 }
 
-const server = Fastify()
+export const server = Fastify()
 
 server.register(jwt, {
 	secret: 'supersecret'
