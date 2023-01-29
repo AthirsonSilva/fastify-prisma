@@ -1,11 +1,18 @@
 import jwt, { JWT } from '@fastify/jwt'
 import Fastify, { FastifyReply, FastifyRequest } from 'fastify'
+import productRoutes from './modules/product/product.routes'
+import { productSchemas } from './modules/product/product.schema'
 import userRoutes from './modules/users/user.routes'
 import { userSchemas } from './modules/users/user.schema'
 
 declare module 'fastify' {
 	interface FastifyRequest {
 		jwt: JWT
+		user: {
+			id: number
+			email: string
+			name: string
+		}
 	}
 	export interface FastifyInstance {
 		authenticate: any
@@ -50,11 +57,22 @@ server.get('/health', async (request, reply) => {
 })
 
 async function main() {
-	for (const schema of userSchemas) {
-		server.addSchema(schema)
+	for (const userSchema of [...userSchemas]) {
+		server.addSchema({
+			...userSchema,
+			$id: 'user'
+		})
+	}
+
+	for (const productSchema of [...productSchemas]) {
+		server.addSchema({
+			...productSchema,
+			$id: 'product'
+		})
 	}
 
 	server.register(userRoutes, { prefix: '/api/users' })
+	server.register(productRoutes, { prefix: '/api/products' })
 
 	try {
 		await server.listen({ port: 3000, host: '0.0.0.0' })
