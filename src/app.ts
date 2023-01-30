@@ -1,5 +1,8 @@
 import jwt, { JWT } from '@fastify/jwt'
+import fastifySwagger from '@fastify/swagger'
 import Fastify, { FastifyReply, FastifyRequest } from 'fastify'
+import { withRefResolver } from 'fastify-zod'
+import { version } from '../package.json'
 import productRoutes from './modules/product/product.routes'
 import { productSchemas } from './modules/product/product.schema'
 import userRoutes from './modules/users/user.routes'
@@ -40,7 +43,7 @@ server.decorate(
 	async (request: FastifyRequest, reply: FastifyReply) => {
 		try {
 			await request.jwtVerify()
-		} catch (error) {
+		} catch (error: any) {
 			return reply.send({
 				message: 'Authentication failed: ' + error.message
 			})
@@ -57,19 +60,37 @@ server.get('/health', async (request, reply) => {
 })
 
 async function main() {
-	for (const userSchema of [...userSchemas]) {
+	for (const schema of [...userSchemas, ...productSchemas]) {
 		server.addSchema({
-			...userSchema,
-			$id: 'user'
+			...schema,
+			$id: schema.$id
 		})
 	}
 
-	for (const productSchema of [...productSchemas]) {
-		server.addSchema({
-			...productSchema,
-			$id: 'product'
+	server.register(
+		fastifySwagger,
+		withRefResolver({
+			routePrefix: '/docs',
+			exposeRoute: true,
+			staticCSP: true,
+			swagger: {
+				info: {
+					title: 'Fastify API',
+					description:
+						'Building a blazing fast REST API with Node.js, MongoDB, Fastify, Prisma.io and Swagger',
+					version
+				}
+			},
+			openapi: {
+				info: {
+					title: 'Fastify API',
+					description:
+						'Building a blazing fast REST API with Node.js, MongoDB, Fastify, Prisma.io and Swagger',
+					version
+				}
+			}
 		})
-	}
+	)
 
 	server.register(userRoutes, { prefix: '/api/users' })
 	server.register(productRoutes, { prefix: '/api/products' })

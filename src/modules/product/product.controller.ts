@@ -29,8 +29,7 @@ export async function createProductHandler(
 			message: 'Product created successfully',
 			product
 		})
-	} catch (error) {
-		console.error(error)
+	} catch (error: any) {
 		reply.status(500).send({ error: error.message })
 	}
 }

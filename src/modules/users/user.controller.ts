@@ -23,7 +23,7 @@ export async function registerUserHandler(
 				name: user.name
 			}
 		})
-	} catch (error) {
+	} catch (error: any) {
 		return reply.code(500).send({ error: error.message })
 	}
 }
