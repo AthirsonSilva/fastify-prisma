@@ -4,7 +4,18 @@ import { CreateProductInput } from './product.schema'
 export async function createProduct(
 	data: CreateProductInput & { ownerId: number }
 ) {
-	return prisma.product.create({ data })
+	const { ownerId, ...rest } = data
+
+	return prisma.product.create({
+		data: {
+			...rest,
+			owner: {
+				connect: {
+					id: ownerId
+				}
+			}
+		}
+	})
 }
 
 export async function getProducts() {

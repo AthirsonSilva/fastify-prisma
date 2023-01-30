@@ -62,8 +62,22 @@ export async function loginHandler(
 	return reply.code(401).send({ message: 'Invalid email or password.' })
 }
 
-export async function getUsersHandler() {
+export async function getUsersHandler(
+	request: FastifyRequest,
+	reply: FastifyReply
+) {
+	const token = request.headers.authorization as string
+
+	const decoded = server.jwt.verify(token.split(' ')[1])
+
+	if (!decoded) {
+		return reply.code(401).send({ message: 'Unauthorized' })
+	}
+
 	const users = await findUsers()
 
-	return users
+	return reply.code(200).send({
+		message: 'Users fetched successfully',
+		users
+	})
 }
